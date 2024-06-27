@@ -22,6 +22,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 
+/**
+ * Аспект, реализующий логирование методов, с аннотацией {@link AuditLog}.
+ */
 @Aspect
 @Component
 @Slf4j
@@ -36,30 +39,62 @@ public class AuditLogAspect {
     @Value("${audit-log.log-save}")
     private LogSave logSave;
 
+    /**
+     * Точка среза для методов с аннотацией {@link AuditLog}.
+     */
     @Pointcut("@annotation(org.ChiniakinD.aspect.AuditLog)")
     public void auditLogMethods() {
     }
 
+    /**
+     * Устанавливает уровень логирования метода, в зависимости от значения аннотации.
+     *
+     * @param auditLog .
+     */
     @Before("@annotation(auditLog)")
     public void logLevelSetUp(AuditLog auditLog) {
         this.logLevel = auditLog.logLevel();
     }
 
+    /**
+     * Выполняет логирование после метода с аннотацией {@link AuditLog}.
+     *
+     * @param joinPoint точка соединения.
+     */
     @After("auditLogMethods()")
     public void printMethodName(JoinPoint joinPoint) {
         outputLog(joinPoint, null);
     }
 
+    /**
+     * Выполняет логирование исключения в методе.
+     *
+     * @param joinPoint точка соединения.
+     * @param e         возникающее исключение.
+     */
     @AfterThrowing(pointcut = "auditLogMethods()", throwing = "e")
     public void printExceptions(JoinPoint joinPoint, Exception e) {
         outputLog(joinPoint, e);
     }
 
+    /**
+     * Создает и сохраняет лог.
+     *
+     * @param joinPoint точка соединения.
+     * @param e         возникающее исключение.
+     */
     private void outputLog(JoinPoint joinPoint, Exception e) {
         String log = generateLog(joinPoint, e);
         saveLog(log);
     }
 
+    /**
+     * Создает лог.
+     *
+     * @param joinPoint точка соединения.
+     * @param e         возникающее исключение, при наличии.
+     * @return строка лога.
+     */
     private String generateLog(JoinPoint joinPoint, Exception e) {
         Method joinPointMethod = ((MethodSignature) joinPoint.getSignature()).getMethod();
         String methodName = joinPointMethod.getName();
@@ -75,6 +110,12 @@ public class AuditLogAspect {
         return log;
     }
 
+    /**
+     * Создает строку аргументов метода.
+     *
+     * @param joinPoint точка соединения.
+     * @return строка аргументов метода.
+     */
     private StringBuilder getStringArgs(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         StringBuilder argsString = new StringBuilder();
@@ -86,6 +127,11 @@ public class AuditLogAspect {
         return argsString;
     }
 
+    /**
+     * Сохраняет лог в зависимости от указанного метода сохранения.
+     *
+     * @param log - строка лога.
+     */
     private void saveLog(String log) {
         switch (logSave) {
             case CONSOLE -> printToConsole(log);
@@ -98,6 +144,11 @@ public class AuditLogAspect {
         }
     }
 
+    /**
+     * Выводит лог в консоль.
+     *
+     * @param logMessage - строка лога.
+     */
     private void printToConsole(String logMessage) {
         switch (logLevel) {
             case INFO -> log.info(logMessage);
@@ -108,6 +159,11 @@ public class AuditLogAspect {
         }
     }
 
+    /**
+     * Записывает в файл лог.
+     *
+     * @param log - строка лога.
+     */
     private void writeToFile(String log) {
         createLogFile();
         try {
@@ -119,6 +175,9 @@ public class AuditLogAspect {
         }
     }
 
+    /**
+     * Создает файл для записи логов, если он отсутствует.
+     */
     private void createLogFile() {
         File file = new File(path);
         if (file.exists()) {
@@ -135,10 +194,20 @@ public class AuditLogAspect {
         }
     }
 
+    /**
+     * Возвращает метаданные лога, включая время и информационное сообщение о потоке.
+     *
+     * @return метаданные лога.
+     */
     private String getLogMetaData() {
         return OffsetDateTime.now() + " " + formatThreadMessage();
     }
 
+    /**
+     * Создает информационное сообщение о потоке.
+     *
+     * @return сообщение об id потока, имени потока, класса в котором вызывается метод.
+     */
     private String formatThreadMessage() {
         Thread currentThread = Thread.currentThread();
         long threadId = currentThread.getId();

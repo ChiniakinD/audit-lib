@@ -3,6 +3,9 @@ package org.ChiniakinD.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Перечисление вариантов сохранения логов.
+ */
 @Getter
 @RequiredArgsConstructor
 public enum LogSave {
