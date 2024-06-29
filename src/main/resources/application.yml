@@ -1,0 +1,3 @@
+audit-log:
+  file-path: /home/dmitrii/IdeaProjects/audit-lib/logs/http.log
+  log-save: all
