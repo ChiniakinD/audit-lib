@@ -1,9 +1,9 @@
-package org.ChiniakinD.aspect;
+package ru.chiniakin.aspect;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ChiniakinD.enums.LogLevel;
-import org.ChiniakinD.enums.LogSave;
+import ru.chiniakin.enums.LogLevel;
+import ru.chiniakin.enums.LogSave;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Aspect;
@@ -11,8 +11,8 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import ru.chiniakin.property.AuditLogConfigurationProperty;
+import ru.chiniakin.utils.LogOutputUtil;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -26,23 +26,25 @@ import java.time.OffsetDateTime;
  * Аспект, реализующий логирование методов, с аннотацией {@link AuditLog}.
  */
 @Aspect
-@Component
 @Slf4j
 @RequiredArgsConstructor
 public class AuditLogAspect {
 
     private LogLevel logLevel;
 
-    @Value("${audit-log.file-path}")
-    private String path;
+    private AuditLogConfigurationProperty auditLogConfigurationProperty;
 
-    @Value("${audit-log.log-save}")
-    private LogSave logSave;
+    private LogOutputUtil logOutputUtil;
+
+    public AuditLogAspect(AuditLogConfigurationProperty auditLogConfigurationProperty, LogOutputUtil logOutputUtil) {
+        this.auditLogConfigurationProperty = auditLogConfigurationProperty;
+        this.logOutputUtil = logOutputUtil;
+    }
 
     /**
      * Точка среза для методов с аннотацией {@link AuditLog}.
      */
-    @Pointcut("@annotation(org.ChiniakinD.aspect.AuditLog)")
+    @Pointcut("@annotation(ru.chiniakin.aspect.AuditLog)")
     public void auditLogMethods() {
     }
 
@@ -133,6 +135,7 @@ public class AuditLogAspect {
      * @param log - строка лога.
      */
     private void saveLog(String log) {
+        LogSave logSave = auditLogConfigurationProperty.getLogSave();
         switch (logSave) {
             case CONSOLE -> printToConsole(log);
             case FILE -> writeToFile(log);
@@ -167,7 +170,7 @@ public class AuditLogAspect {
     private void writeToFile(String log) {
         createLogFile();
         try {
-            FileWriter writer = new FileWriter(path, true);
+            FileWriter writer = new FileWriter(auditLogConfigurationProperty.getFilePath(), true);
             writer.write(getLogMetaData() + log);
             writer.close();
         } catch (IOException e) {
@@ -179,7 +182,7 @@ public class AuditLogAspect {
      * Создает файл для записи логов, если он отсутствует.
      */
     private void createLogFile() {
-        File file = new File(path);
+        File file = new File(auditLogConfigurationProperty.getFilePath());
         if (file.exists()) {
             return;
         }
@@ -188,7 +191,7 @@ public class AuditLogAspect {
             parentDir.mkdirs();
         }
         try {
-            Files.createFile(Paths.get(path));
+            Files.createFile(Paths.get(auditLogConfigurationProperty.getFilePath()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

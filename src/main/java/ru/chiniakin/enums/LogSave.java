@@ -1,4 +1,4 @@
-package org.ChiniakinD.enums;
+package ru.chiniakin.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

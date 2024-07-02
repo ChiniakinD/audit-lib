@@ -1,5 +1,0 @@
-server:
-  port: 8080
-audit-log:
-  log-save: all
-  file-path: /home/dmitrii/IdeaProjects/auditLibTest/logs/spring-boot-application.log

@@ -1,6 +1,6 @@
-package org.ChiniakinD.aspect;
+package ru.chiniakin.aspect;
 
-import org.ChiniakinD.enums.LogLevel;
+import ru.chiniakin.enums.LogLevel;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
