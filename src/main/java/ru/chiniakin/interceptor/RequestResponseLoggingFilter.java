@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Класс который фильтрует запросы и ответы.
  *
- * @author ChiniakinD
+ * @author  ChiniakinD
  */
 @RequiredArgsConstructor
 public class RequestResponseLoggingFilter extends OncePerRequestFilter {
@@ -33,20 +33,24 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
      * @param filterChain цепочка фильтров
      */
     @Override
-    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
 
         filterChain.doFilter(wrappedRequest, wrappedResponse);
 
         String requestBody = new String(wrappedRequest.getContentAsByteArray(), StandardCharsets.UTF_8);
-        logOutputUtil.setHttpRequestAspect(new HttpRequestAspect(wrappedRequest.getMethod(), wrappedRequest.getRequestURI(), requestBody));
+        logOutputUtil.setHttpRequestAspect(
+                new HttpRequestAspect(wrappedRequest.getMethod(), wrappedRequest.getRequestURI(), requestBody));
 
         String responseBody = new String(wrappedResponse.getContentAsByteArray(), StandardCharsets.UTF_8);
         logOutputUtil.setHttpResponseAspect(new HttpResponseAspect(wrappedResponse.getStatus(), responseBody));
 
         String logMessage = logOutputUtil.createHttpRequestLogMessage();
         logOutputUtil.saveLog(logMessage);
+
+        wrappedResponse.copyBodyToResponse();
     }
 
 }
