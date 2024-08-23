@@ -31,8 +31,12 @@ public class LogService {
      */
     @Transactional
     public void sendLogModel(LogModel logModel) {
-        kafkaTemplate.send(topicProperties.getSendLog(), logModel);
-        log.info("Cообщение отправлено " + topicProperties.getSendLog());
+        kafkaTemplate.executeInTransaction(operations -> {
+            kafkaTemplate.send(topicProperties.getSendLog(), logModel);
+            log.info("Cообщение отправлено " + topicProperties.getSendLog());
+            return true;
+        });
+
     }
 
 }

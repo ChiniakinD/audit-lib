@@ -89,7 +89,8 @@ public class AuditLogAutoConfiguration {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         props.put(ProducerConfig.ACKS_CONFIG, kafkaProperties.getProducer().getAcks());
         props.put(ProducerConfig.RETRIES_CONFIG, kafkaProperties.getProducer().getRetries());
-        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, kafkaProperties.getProducer().getProperties().get("enable.idempotence"));
+        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "default-transactional-id");
         return props;
     }
 
@@ -106,13 +107,13 @@ public class AuditLogAutoConfiguration {
 
     /**
      * Создает бин {@link KafkaTemplate} если он отсутствует в контексте.
-     *
-     * @param kafkaProperties настроки Kafka.
      */
     @Bean
     @ConditionalOnMissingBean
-    public KafkaTemplate<String, Object> kafkaTemplate(KafkaProperties kafkaProperties) {
-        return new KafkaTemplate<>(producerFactory(kafkaProperties));
+    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
+        KafkaTemplate<String, Object> kafkaTemplate = new KafkaTemplate<>(producerFactory);
+        kafkaTemplate.setTransactionIdPrefix("default-transactional-id");
+        return kafkaTemplate;
     }
 
     /**
