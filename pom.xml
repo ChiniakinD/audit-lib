@@ -11,7 +11,7 @@
     <groupId>com.example</groupId>
 
     <artifactId>Audit-log-aspect</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>SpringBootLearning</name>
     <description>SpringBootLearning</description>
 
@@ -59,8 +59,21 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <version>3.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.chiniakin</groupId>
+            <artifactId>log-storage</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
-
 
     <build>
         <plugins>

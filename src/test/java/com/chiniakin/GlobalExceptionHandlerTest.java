@@ -1,4 +1,4 @@
-package ru.chiniakin;
+package com.chiniakin;
 
 import ru.chiniakin.exception.GlobalExceptionHandler;
 import ru.chiniakin.utils.LogOutputUtil;

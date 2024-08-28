@@ -11,7 +11,10 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.reflect.MethodSignature;
+import ru.chiniakin.model.kafka.LogModel;
+import ru.chiniakin.service.kafka.LogService;
 import ru.chiniakin.property.AuditLogConfigurationProperty;
+import ru.chiniakin.property.ServiceProperties;
 import ru.chiniakin.utils.LogOutputUtil;
 
 import java.io.File;
@@ -34,11 +37,20 @@ public class AuditLogAspect {
 
     private AuditLogConfigurationProperty auditLogConfigurationProperty;
 
+    private LogService logService;
+
+    private ServiceProperties serviceProperties;
+
     private LogOutputUtil logOutputUtil;
 
-    public AuditLogAspect(AuditLogConfigurationProperty auditLogConfigurationProperty, LogOutputUtil logOutputUtil) {
+    public AuditLogAspect(AuditLogConfigurationProperty auditLogConfigurationProperty,
+                          LogOutputUtil logOutputUtil,
+                          LogService logService,
+                          ServiceProperties serviceProperties) {
         this.auditLogConfigurationProperty = auditLogConfigurationProperty;
+        this.logService = logService;
         this.logOutputUtil = logOutputUtil;
+        this.serviceProperties = serviceProperties;
     }
 
     /**
@@ -77,6 +89,7 @@ public class AuditLogAspect {
     @AfterThrowing(pointcut = "auditLogMethods()", throwing = "e")
     public void printExceptions(JoinPoint joinPoint, Exception e) {
         outputLog(joinPoint, e);
+        logService.sendLogModel(generateLogModelSentEvent(joinPoint, e));
     }
 
     /**
@@ -88,6 +101,7 @@ public class AuditLogAspect {
     private void outputLog(JoinPoint joinPoint, Exception e) {
         String log = generateLog(joinPoint, e);
         saveLog(log);
+        logService.sendLogModel(generateLogModelSentEvent(joinPoint, e));
     }
 
     /**
@@ -110,6 +124,27 @@ public class AuditLogAspect {
                     + " Exception message: " + e.getMessage() + "\n";
         }
         return log;
+    }
+
+    /**
+     * Создает лог для отправки в Kafka
+     */
+    public LogModel generateLogModelSentEvent(JoinPoint joinPoint, Exception e) {
+        LogModel logModel = new LogModel();
+        // установка названия метода
+        Method joinPointMethod = ((MethodSignature) joinPoint.getSignature()).getMethod();
+        String methodName = joinPointMethod.getName();
+        logModel.setMethodName(methodName);
+        logModel.setServiceName(serviceProperties.getName());
+        // установка аргументов метода
+        StringBuilder argsString = getStringArgs(joinPoint);
+        logModel.setMethodArguments(argsString.toString());
+        // установка возвращаемого значения метода
+        Object object = joinPointMethod.getReturnType();
+        logModel.setReturnMeaning(object.toString());
+        // установка exception
+        logModel.setException(e == null ? null : e.getMessage());
+        return logModel;
     }
 
     /**

@@ -1,0 +1,11 @@
+server:
+  port: 8086
+
+spring:
+  kafka:
+    producer:
+      properties:
+        enable.idempotence: true
+      transactional-id-prefix: "default-transactional-id"
+    template:
+      default-topic: send-order-event
